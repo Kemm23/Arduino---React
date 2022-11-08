@@ -1,0 +1,32 @@
+.wrapper {
+    width: 800px;
+    font-size: 32px;
+    color: blueviolet;
+    > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    img {
+        margin-right: 12px;
+    }
+    button {
+        font-size: 1.3rem;
+        width: 120px;
+        height: 50px;
+        border: none;
+        background: #aef8e3;
+        border-radius: 24px;
+    }
+    button:hover {
+        opacity: 0.8;
+        cursor: pointer;
+    }
+}
+
+.setup {
+    margin: 15px 0; 
+    font-size: 32px; 
+    color: red;
+}
