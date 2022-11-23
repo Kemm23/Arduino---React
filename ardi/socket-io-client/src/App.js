@@ -1,6 +1,6 @@
 import "./App.css";
 import React, { useState, useCallback } from "react";
-import Sensor from "./components/Sensor";
+import Sensor from "./components/Sensor/Sensor";
 import Vision from "./components/Vision/Vision.js";
 import socketIOClient from "socket.io-client";
 import Manual from "./components/Manual/Manual.js";
@@ -24,11 +24,13 @@ function App() {
         {changeMode ? "Vision" : "Manual"}
       </button>
       {changeMode ? (
-        <Manual socketIOClient={socketIOClient} />
+        <>
+          <Manual socketIOClient={socketIOClient} />
+          <Sensor />
+        </>
       ) : (
         <Vision socketIOClient={socketIOClient} handleDisable={handleDisable} />
       )}
-      <Sensor />
     </>
   );
 }

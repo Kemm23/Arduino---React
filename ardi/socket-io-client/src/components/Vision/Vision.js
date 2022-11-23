@@ -29,7 +29,7 @@ function Vision({ socketIOClient, handleDisable }) {
   const [enableRun, setEnableRun] = useState(true);
   const [enableStop, setEnableStop] = useState(true);
   const [setup, setUp] = useState(true);
-
+  //event
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
     socket.emit("handleServo1", oxy);
@@ -48,6 +48,7 @@ function Vision({ socketIOClient, handleDisable }) {
   const mobilenetModule = useRef();
   //   const canPlaySound = useRef(false);
 
+  //Khởi tạo các cấu hình cần thiết
   const init = async () => {
     console.log("init....");
     await setupCamera();
@@ -59,24 +60,22 @@ function Vision({ socketIOClient, handleDisable }) {
     setEnableTrain(false);
     setUp(false);
   };
-
+  //setupCamera
   const setupCamera = () => {
     return new Promise((resolve, reject) => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-          .getUserMedia({ video: true })
-          .then(function (stream) {
-            video.current.srcObject = stream;
-            localstream = stream;
-            video.current.play();
-            video.current.addEventListener("loadeddata", resolve);
-          });
+        navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+          video.current.srcObject = stream;
+          localstream = stream;
+          video.current.play();
+          video.current.addEventListener("loadeddata", resolve);
+        });
       } else {
         reject();
       }
     });
   };
-
+  //Thiết lập số lượng ảnh nhận vào trong 1 lần setup
   const train = async (label) => {
     for (let i = 0; i < TRAINING_TIMES; ++i) {
       console.log(`Progress ${((i + 1) / TRAINING_TIMES) * 100}%`);
@@ -84,30 +83,38 @@ function Vision({ socketIOClient, handleDisable }) {
     }
     setEnableRun(false);
   };
-
+  //Gửi đi các sự kiện đến server
   const handleDispatchData = (label, confidence) => {
     switch (label) {
       case ONE_FINGER:
         console.log("one_finger", confidence);
-        setOxy((prevState) => (prevState === 180 ? 0 : prevState + 5));
+        if (confidence > 0.5) {
+          setOxy((prevState) => (prevState === 180 ? 0 : prevState + 5));
+        }
         break;
       case TWO_FINGERS:
         console.log("two_fingers", confidence);
-        setOyz((prevState) => (prevState === 90 ? 0 : prevState + 5));
+        if (confidence > 0.5) {
+          setOyz((prevState) => (prevState === 90 ? 0 : prevState + 5));
+        }
         break;
       case THREE_FINGERS:
         console.log("three_fingers", confidence);
-        setGrip((prevState) => (prevState === 180 ? 0 : prevState + 5));
+        if (confidence > 0.5) {
+          setGrip((prevState) => (prevState === 180 ? 0 : prevState + 5));
+        }
         break;
       default:
         break;
     }
   };
+  // Bước 1: Đưa vào tập ảnh có 1 ngón tay cho máy nhận diện xử lí, nhận diện
+  // Bước 2: Đưa vào tập ảnh có 2 ngón tay cho máy nhận diện xử lí, nhận diện
+  // Bước 3: Đưa vào tập ảnh có 3 ngón tay cho máy nhận diện xử lí, nhận diện
+  // Bước 4: Lấy hình ảnh hiện tại, phân tích và so sánh với data đã đưa vào trước đó
+  // ==> Nếu mà matching với trường hợp nào (1 ngón tay or 2 ngón tay)=> Đưa ra 1 sự kiện để gửi đến server và qua đó điều khiển servo
 
-  // Bước 1: Train cho máy khuôn mặt không chạm tay
-  // Bước 2: Train cho máy khuôn mặt chạm tay
-  // Bước 3: Lấy hình ảnh hiện tại, phân tích và so sánh với data đã học trước đó
-  // ==> Nếu mà matching với data khuôn mặt chạm tay => Cảnh báo
+  //Truyền tập ảnh vào cho máy nhận diện
   function training(label) {
     return new Promise(async (resolve) => {
       const embedding = mobilenetModule.current.infer(video.current, true);
@@ -116,10 +123,12 @@ function Vision({ socketIOClient, handleDisable }) {
       resolve();
     });
   }
-
+  //Lấy hình ảnh hiện tại, phân tích và so sánh với data đã đưa vào trước đó
   const run = async () => {
     while (stopRun) {
+      //dua tap anh
       const embedding = mobilenetModule.current.infer(video.current, true);
+      //phan loai anh
       const result = await classifier.current.predictClass(embedding);
       console.log("Label: ", result.label);
       console.log("confidences: ", result.confidences);
@@ -127,9 +136,11 @@ function Vision({ socketIOClient, handleDisable }) {
       await sleep(500);
     }
   };
+  //Hàm delay
   const sleep = (ms) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   };
+
   useEffect(() => {
     init();
     // sound.on("end", () => {
@@ -209,7 +220,7 @@ function Vision({ socketIOClient, handleDisable }) {
         <div>
           <span>
             <img src={icon1} alt="" />
-            Control gripper robot (Two Fingers)
+            Control gripper robot (Three Fingers)
           </span>
           <button
             disabled={enableTrain}
