@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, memo } from "react";
 //   src: [soundURL],
 // });
 
+const NO_HAND = "no_hand";
 const ONE_FINGER = "one_finger";
 const TWO_FINGERS = "two_fingers";
 const THREE_FINGERS = "three_fingers";
@@ -105,6 +106,7 @@ function Vision({ socketIOClient, handleDisable }) {
         }
         break;
       default:
+        console.log("no_hand", confidence);
         break;
     }
   };
@@ -187,6 +189,21 @@ function Vision({ socketIOClient, handleDisable }) {
         <div className={clsx(styles.setup)}>Setup Done !</div>
       )}
       <div className={clsx(styles.wrapper)}>
+      <div>
+          <span>
+            <img src={icon1} alt="" />
+            No Hand
+          </span>
+          <button
+            disabled={enableTrain}
+            className="btn"
+            onClick={() => {
+              train(NO_HAND);
+            }}
+          >
+            Set Up
+          </button>
+        </div>
         <div>
           <span>
             <img src={icon1} alt="" />
